@@ -13,8 +13,7 @@ spring:
       on-profile: local
   # 아래는 jdbc의 기본 db 관련 설정인데, jdbc 뿐만 아니라 mybatis / jpa 등 spring의 대부분의 DB 기술에 동일하게 사용
   datasource:
-    driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3306/ordersystem
+    url: jdbc:mariadb://localhost:3307/ordersystem
     username: root
     password: 1234
   jpa:
@@ -44,7 +43,3 @@ logging:
     # TRACE < DEBUG < INFO < ERROR
     # debug, info, error 로그 출력
     root: info
-
-# mapper파일(mybatis의 쿼리파일)의 위치를 명시하고 scan. 기본적으로 resource폴더는 default
-mybatis:
-  mapper-locations: classpath:/mapper/**/*.xml
