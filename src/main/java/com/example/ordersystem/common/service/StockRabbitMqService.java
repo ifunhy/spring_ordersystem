@@ -37,9 +37,10 @@ public class StockRabbitMqService {
 
     // rabbitmq에 발행된 메시지를 수신
     // listener는 단일스레드로 메시지를 처리하므로, 동시성 이슈 발생 X
+    // 호출하지 않아도 단일 동작함
     @RabbitListener(queues = "stockDecreaseQueue")
     @Transactional
-    public void subscribe(Message message) throws JsonProcessingException {
+    public void subscribe(Message message) throws JsonProcessingException { // Message 주입 받음
         String messageBody = new String(message.getBody()); // message를 Body부분으로 꺼내 String으로 형변환
         ObjectMapper objectMapper = new ObjectMapper();
         StockRabbitMqDto dto = objectMapper.readValue(messageBody, StockRabbitMqDto.class); // 파싱

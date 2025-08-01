@@ -106,6 +106,7 @@ public class OrderingService {
                     .ordering(ordering)
                     .build();
             ordering.getOrderingDetailList().add(orderingDetail);
+            // rdb에 사후 update를 위한 메시지 발행 (비동기처리)
             stockRabbitMqService.publish(dto.getProductId(), dto.getProductCount());
         }
         orderingRepository.save(ordering);
