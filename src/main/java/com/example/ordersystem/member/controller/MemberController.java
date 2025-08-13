@@ -23,6 +23,7 @@ public class MemberController {
     private final MemberService memberService;
     private final JwtTokenProvider jwtTokenProvider;
 
+    // 회원가입
     @PostMapping("/create")
     public ResponseEntity<?> save(@RequestBody @Valid MemberCreateDto memberCreateDto) {
         try {
@@ -40,6 +41,7 @@ public class MemberController {
         }
     }
 
+    // 로그인
     @PostMapping("/doLogin")
     public ResponseEntity<?> doLogin(@RequestBody @Valid LoginReqDto loginReqDto){
         Member member = memberService.doLogin(loginReqDto);
@@ -104,6 +106,7 @@ public class MemberController {
                 HttpStatus.OK);
     }
 
+    // 내정보조회
     @GetMapping("/myinfo")
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<?> findById() {
@@ -120,6 +123,7 @@ public class MemberController {
                 HttpStatus.OK);
     }
 
+    // 회원삭제
     @DeleteMapping("/delete")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> softDelete() {
@@ -132,6 +136,19 @@ public class MemberController {
                         .status_code(
                                 HttpStatus.OK.value())
                         .status_message("회원 탈퇴 성공")
+                        .build(),
+                HttpStatus.OK);
+    }
+
+    // 회원상세조회
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<?> memberDetail(@PathVariable Long id){
+        return new ResponseEntity<>(
+                CommonDto.builder()
+                        .result(memberService.findById(id))
+                        .status_code(HttpStatus.OK.value())
+                        .status_message("회원상세조회완료")
                         .build(),
                 HttpStatus.OK);
     }

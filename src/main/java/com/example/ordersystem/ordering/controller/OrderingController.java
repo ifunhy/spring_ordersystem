@@ -1,14 +1,11 @@
 package com.example.ordersystem.ordering.controller;
 
 import com.example.ordersystem.common.dto.CommonDto;
+import com.example.ordersystem.ordering.domain.Ordering;
 import com.example.ordersystem.ordering.dto.OrderCreateDto;
 import com.example.ordersystem.ordering.dto.OrderListResDto;
 import com.example.ordersystem.ordering.service.OrderingService;
-import com.example.ordersystem.product.dto.ProductResDto;
-import com.example.ordersystem.product.dto.ProductSearchDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -39,7 +36,7 @@ public class OrderingController {
 
     // 주문목록조회
     @GetMapping("/list")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> findAll() {
         List<OrderListResDto> orderListResDtos = orderingService.findAll();
         return new ResponseEntity<>(
@@ -61,6 +58,21 @@ public class OrderingController {
                         .result(orderListResDtos)
                         .status_code(HttpStatus.OK.value())
                         .status_message("내주문목록조회성공")
+                        .build(),
+                HttpStatus.OK
+        );
+    }
+
+    // 주문취소
+    @DeleteMapping("/cancel/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> orderCancel(@PathVariable Long id) {
+        Ordering ordering = orderingService.cancel(id);
+        return new ResponseEntity<>(
+                CommonDto.builder()
+                        .result(ordering.getId())
+                        .status_code(HttpStatus.OK.value())
+                        .status_message("주문취소성공")
                         .build(),
                 HttpStatus.OK
         );

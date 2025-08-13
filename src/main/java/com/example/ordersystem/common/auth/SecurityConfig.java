@@ -1,8 +1,5 @@
-package com.example.ordersystem.common.config;
+package com.example.ordersystem.common.auth;
 
-import com.example.ordersystem.common.auth.JwtAuthorizationHandler;
-import com.example.ordersystem.common.auth.JwtAuthenticationHandler;
-import com.example.ordersystem.common.auth.JwtTokenFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,7 +41,15 @@ public class SecurityConfig {
                         e.authenticationEntryPoint(JwtAuthenticationHandler) // 401의 경우
                                 .accessDeniedHandler(jwtAuthorizationHandler) // 403의 경우
                 )
-                .authorizeHttpRequests(a -> a.requestMatchers("/member/create", "/member/doLogin", "/member/refresh-at", "/product/list").permitAll().anyRequest().authenticated())
+                .authorizeHttpRequests(a -> a.requestMatchers(
+                        "/member/create",
+                        "/member/doLogin",
+                        "/member/refresh-at",
+                        "/product/list",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html"
+                ).permitAll().anyRequest().authenticated())
                 .build();
     }
     private CorsConfigurationSource corsConfiguration(){

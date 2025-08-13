@@ -30,4 +30,15 @@ public class Ordering extends BaseTimeEntity {
     @OneToMany(mappedBy = "ordering", cascade = CascadeType.PERSIST)  // cascading을 위한 연결
     @Builder.Default
     List<OrderingDetail> orderingDetailList = new ArrayList<>();
+
+    // 주문취소
+    public void cancelStatus() {
+        // 이미 취소된 주문인지 확인
+        if (this.orderStatus == OrderStatus.CANCELED) {
+            throw new IllegalStateException("이미 취소된 주문입니다.");
+        }
+        // 상태 변경
+        this.orderStatus = OrderStatus.CANCELED;
+    }
+
 }

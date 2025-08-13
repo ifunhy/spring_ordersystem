@@ -1,6 +1,8 @@
 package com.example.ordersystem.common.service;
 
 import com.example.ordersystem.common.dto.CommonErrorDto;
+import io.swagger.v3.oas.annotations.Hidden;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -12,6 +14,8 @@ import java.util.NoSuchElementException;
 
 // Controller 어노테이션이 붙어있는 클래스의 모든 예외를 모니터링하여 예외를 인터셉팅
 @ControllerAdvice
+@Slf4j
+@Hidden // swagger에서 제외
 public class CommonExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)

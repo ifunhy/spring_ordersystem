@@ -6,6 +6,7 @@ import com.example.ordersystem.member.dto.LoginReqDto;
 import com.example.ordersystem.member.dto.MemberResDto;
 import com.example.ordersystem.member.repository.MemberRepository;
 import com.example.ordersystem.member.repository.MemberRepositoryImpl;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -84,5 +85,10 @@ public class MemberService {
         memberRepositoryImpl.softDeleteByEmail(email);
 
         return email;
+    }
+
+    public MemberResDto findById(Long id){
+        Member member = memberRepository.findById(id).orElseThrow(()->new EntityNotFoundException("member is not found"));
+        return MemberResDto.fromEntity(member);
     }
 }

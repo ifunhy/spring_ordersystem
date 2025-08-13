@@ -1,5 +1,6 @@
 package com.example.ordersystem.ordering.service;
 
+import com.example.ordersystem.common.service.SseAlarmService;
 import com.example.ordersystem.common.service.StockInventoryService;
 import com.example.ordersystem.common.service.StockRabbitMqService;
 import com.example.ordersystem.member.domain.Member;
@@ -7,26 +8,18 @@ import com.example.ordersystem.member.repository.MemberRepository;
 import com.example.ordersystem.ordering.domain.Ordering;
 import com.example.ordersystem.ordering.domain.OrderingDetail;
 import com.example.ordersystem.ordering.dto.OrderCreateDto;
-import com.example.ordersystem.ordering.dto.OrderDetailResDto;
 import com.example.ordersystem.ordering.dto.OrderListResDto;
 import com.example.ordersystem.ordering.repository.OrderDetailRepository;
 import com.example.ordersystem.ordering.repository.OrderingRepository;
 import com.example.ordersystem.product.domain.Product;
-import com.example.ordersystem.product.dto.ProductResDto;
-import com.example.ordersystem.product.dto.ProductSearchDto;
 import com.example.ordersystem.product.repository.ProductRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,6 +33,7 @@ public class OrderingService {
     private final OrderDetailRepository orderDetailRepository;
     private final StockInventoryService stockInventoryService;
     private final StockRabbitMqService stockRabbitMqService;
+    private final SseAlarmService sseAlarmService;
 
     // 주문
     public Long create(List<OrderCreateDto> orderCreateDtoList) {
@@ -75,6 +69,8 @@ public class OrderingService {
             ordering.getOrderingDetailList().add(orderingDetail);
         }
         orderingRepository.save(ordering);
+
+
         return ordering.getId();
     }
 
@@ -110,7 +106,8 @@ public class OrderingService {
             stockRabbitMqService.publish(dto.getProductId(), dto.getProductCount());
         }
         orderingRepository.save(ordering);
-
+        // 주문성공 시 admin에게 알림메시지 전송
+        sseAlarmService.publishMessage("admin@naver.com", email, ordering.getId());  // email체계로 던져줌(admin, 주문자, 주문id)
 
         return ordering.getId();
     }
@@ -128,5 +125,22 @@ public class OrderingService {
 
         return orderingRepository.findAllByMember(member).stream()
                 .map(o -> OrderListResDto.fromEntity(o)).collect(Collectors.toList());
+    }
+
+    // 주문취소
+    public Ordering cancel(Long id) {
+        // Ordering DB에 상태값 변경 CANCELED -> status
+        Ordering ordering = orderingRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("해당 주문이 없습니다."));
+        ordering.cancelStatus();    // 상태 변경
+
+        for (OrderingDetail orderDetail : ordering.getOrderingDetailList()) {
+            // rdb재고 업데이트
+            orderDetail.getProduct().cancelOrder(orderDetail.getQuantity());
+
+            // redis에서 재고수량 증가 처리(id, 수량)
+            stockInventoryService.increaseStockQuantity(orderDetail.getProduct().getId(), orderDetail.getQuantity());
+        }
+
+        return ordering;
     }
 }
